@@ -1,6 +1,7 @@
-#include "iostream"
-#include "main.h"
+#include "DriverControl/vision.hpp"
 #include "Globals/globals.hpp"
+#include "pros/llemu.hpp"
+#include "pros/ai_vision.hpp"
 
 #define EXAMPLE_SIG 1
 
@@ -10,18 +11,37 @@ void track_vision() {
     aivision.enable_detection_types(pros::AivisionModeType::colors);
     pros::AIVision::Color color = {.id = 1, .red = 180, .green = 3, .blue = 50, .hue_range = 21, .saturation_range = 1};
     pros::AIVision::Color color2 = {.id = 2, .red = 242, .green = 94, .blue = 86, .hue_range = 10, .saturation_range = 0.51};
+    pros::AIVision::Color color3 = {.id = 3, .red = 255, .green = 0, .blue = 0, .hue_range = 10, .saturation_range = 0.51};
     aivision.set_color(color);
     aivision.set_color(color2);
+    aivision.set_color(color3);
+    
+    pros::lcd::initialize();
+    pros::lcd::print(0, "Vision Tracking Started");
+    
     while (true) {
         auto objects = aivision.get_all_objects();
+        pros::lcd::print(1, "Objects found: %d", (int)objects.size());
+        
+        int line = 2;
         for (auto &object : objects) {
             if (pros::AIVision::is_type(object, pros::AivisionDetectType::color)) {
-                printf("color\n");
-                printf("id %d\n", object.id);
-                printf("%d %d %d %d %d\n", object.object.color.xoffset, object.object.color.yoffset, object.object.color.width, object.object.color.height, object.object.color.angle);
+                pros::lcd::print(line++, "Color ID: %d", object.id);
+                pros::lcd::print(line++, "X: %d Y: %d", object.object.color.xoffset, object.object.color.yoffset);
+                pros::lcd::print(line++, "Size: %dx%d", object.object.color.width, object.object.color.height);
+                pros::lcd::print(line++, "Angle: %d", object.object.color.angle);
+                
+                // Limit display to prevent overflow (LCD has 8 lines)
+                if (line > 7) break;
             }
         }
-        pros::delay(20);
+        
+        // Clear remaining lines if fewer objects
+        for (int i = line; i < 8; i++) {
+            pros::lcd::print(i, "");
+        }
+        
+        pros::delay(100);
     }
 
 

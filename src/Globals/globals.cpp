@@ -3,7 +3,7 @@
 #include "Utility/utils.hpp"
 
 pros::Motor left_front_motor(1);
-pros::Motor left_back_motor(2);
+pros::Motor left_back_motor(8);
 pros::Motor right_front_motor(3);
 pros::Motor right_back_motor(4);    
 

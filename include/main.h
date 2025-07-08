@@ -42,6 +42,7 @@
 //#include "okapi/api.hpp"
 
 #include "DriverControl/opcontrol.hpp"
+#include "DriverControl/vision.hpp"
 #include "Globals/globals.hpp"
 #include "Utility/utils.hpp"
 

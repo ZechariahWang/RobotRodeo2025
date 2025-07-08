@@ -76,6 +76,7 @@ void autonomous() {}
 void opcontrol() {
 	while (true) {
 		dt_control(); // Call the drive train control function
+		track_vision();
 		pros::delay(10); // Delay to prevent flooding the LCD
 	}
 }
