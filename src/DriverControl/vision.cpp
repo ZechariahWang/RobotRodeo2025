@@ -5,21 +5,43 @@
 
 #define EXAMPLE_SIG 1
 
+std::string visionData() {
+    std::string data = "";
+    auto objects = aivision.get_all_objects();
+    int line = 2;
+    for (const auto &object : objects) {
+        if (pros::AIVision::is_type(object, pros::AivisionDetectType::color)) {
+            data += "Color ID: " + std::to_string(object.id) + "\n";
+            data += "X: " + std::to_string(object.object.color.xoffset) + " Y: " + std::to_string(object.object.color.yoffset) + "\n";
+            data += "Size: " + std::to_string(object.object.color.width) + "x" + std::to_string(object.object.color.height) + "\n";
+            data += "Angle: " + std::to_string(object.object.color.angle) + "\n\n";
+        }
+        
+        for (int i = line; i < 8; i++) {
+            pros::lcd::print(i, "");
+        }
+    }
+
+    return data;
+}
+
+bool is_tracking = false;
 void track_vision() {
-    pros::AIVision aivision(2);
-    aivision.reset();
-    aivision.enable_detection_types(pros::AivisionModeType::colors);
-    pros::AIVision::Color color = {.id = 1, .red = 180, .green = 3, .blue = 50, .hue_range = 21, .saturation_range = 1};
-    pros::AIVision::Color color2 = {.id = 2, .red = 242, .green = 94, .blue = 86, .hue_range = 10, .saturation_range = 0.51};
-    pros::AIVision::Color color3 = {.id = 3, .red = 255, .green = 0, .blue = 0, .hue_range = 10, .saturation_range = 0.51};
-    aivision.set_color(color);
-    aivision.set_color(color2);
-    aivision.set_color(color3);
-    
-    pros::lcd::initialize();
-    pros::lcd::print(0, "Vision Tracking Started");
-    
-    while (true) {
+    if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_A)) is_tracking = !is_tracking;
+
+    if (is_tracking) {
+        aivision.reset();
+        aivision.enable_detection_types(pros::AivisionModeType::colors);
+        pros::AIVision::Color color = {.id = 1, .red = 180, .green = 3, .blue = 50, .hue_range = 21, .saturation_range = 1};
+        pros::AIVision::Color color2 = {.id = 2, .red = 242, .green = 94, .blue = 86, .hue_range = 10, .saturation_range = 0.51};
+        pros::AIVision::Color color3 = {.id = 3, .red = 255, .green = 0, .blue = 0, .hue_range = 10, .saturation_range = 0.51};
+        aivision.set_color(color);
+        aivision.set_color(color2);
+        aivision.set_color(color3);
+        
+        pros::lcd::initialize();
+        pros::lcd::print(0, "Vision Tracking Started");
+        
         auto objects = aivision.get_all_objects();
         pros::lcd::print(1, "Objects found: %d", (int)objects.size());
         
@@ -31,33 +53,17 @@ void track_vision() {
                 pros::lcd::print(line++, "Size: %dx%d", object.object.color.width, object.object.color.height);
                 pros::lcd::print(line++, "Angle: %d", object.object.color.angle);
                 
-                // Limit display to prevent overflow (LCD has 8 lines)
                 if (line > 7) break;
             }
+            
+            // Clear remaining lines if fewer objects
+            for (int i = line; i < 8; i++) {
+                pros::lcd::print(i, "");
+            }
+            
+            pros::delay(100);
         }
-        
-        // Clear remaining lines if fewer objects
-        for (int i = line; i < 8; i++) {
-            pros::lcd::print(i, "");
-        }
-        
-        pros::delay(100);
+    } else {
+        pros::lcd::print(0, "Vision Tracking Stopped");
     }
-
-
-
-
-
-    // pros::vision_signature_s_t RED_SIG =
-    // pros::Vision::signature_from_utility(EXAMPLE_SIG, 8973, 11143, 10058, -2119, -1053, -1586, 5.4, 0);
-    // vision_sensor.set_signature(EXAMPLE_SIG, &RED_SIG);
-    // pros::vision_object_s_t obj = vision_sensor.get_by_sig(0, 1);
-    // if (obj.signature == EXAMPLE_SIG) {
-    //     std::cout << "Object detected with signature: " << obj.signature << std::endl;
-    //     std::cout << "Coordinates: (" << obj.x_middle_coord << ", " << obj.y_middle_coord << ")" << std::endl;
-    //     std::cout << "Dimensions: " << obj.width << "x" << obj.height << std::endl;
-    // } else {
-    //     std::cout << "No object detected with signature: " << EXAMPLE_SIG << std::endl;
-    // }
-    // std::cout << "Tracking vision data..." << std::endl;
 }

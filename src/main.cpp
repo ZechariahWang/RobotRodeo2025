@@ -25,6 +25,10 @@ void on_center_button() {
 void initialize() {
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello PROS User! ");
+	left_arm.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	right_arm.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	left_intake.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	right_intake.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
 	pros::lcd::register_btn1_cb(on_center_button);
 }
@@ -73,9 +77,14 @@ void autonomous() {}
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
+
+int32_t intakePower = 127;
+int32_t armPower = 127;
 void opcontrol() {
 	while (true) {
 		dt_control(); // Call the drive train control function
+		intake(intakePower);
+		arm_control(armPower);
 		track_vision();
 		pros::delay(10); // Delay to prevent flooding the LCD
 	}
